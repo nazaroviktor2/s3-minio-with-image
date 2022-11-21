@@ -1,0 +1,82 @@
+version: "3.9"
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  adminer:
+      image: adminer
+      restart: always
+      ports:
+      - 8080:8080
+      
+  database:
+      restart: always
+      image: postgres
+      volumes:
+          - db-images:/var/lib/postgresql/data/pgdata
+      environment:
+          POSTGRES_USER: ${DB_USER}
+          POSTGRES_PASSWORD: ${DB_PASSWORD}
+          POSTGRES_DB: "${DATABASE}"
+
+          PGDATA: /var/lib/postgresql/data/pgdata
+      ports:
+      - ${DB_PORT}:5432
+      networks:
+      - app-tier
+
+  minio:
+   image: minio/minio:latest
+   command: minio server --console-address  ${MINIO_HOST} /data/
+   ports:
+     - "${MINIO_API_PORT}:9000"
+     - "${MINIO_CONSOLE_PORT}:9001"
+   networks:
+    - app-tier
+     
+   environment:
+     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_USER}
+
+   volumes:
+     - minio-storage:/data
+   healthcheck:
+     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+     interval: 30s
+     timeout: 20s
+     retries: 3
+
+  generate-image:
+    build: ./generate-image/
+    environment:
+      BUCKET: img-test
+      MINIO_HOST: minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_USER}
+      DATABASE: ${DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: database
+      DB_PORT: 5432
+      COUNT: ${COUNT}
+
+    links:
+        - database
+        - minio
+    volumes_from:
+        - database
+    depends_on:
+        - database
+
+
+    networks:
+      - app-tier
+
+
+    
+volumes:
+  minio-storage:
+  db-images:
+  
