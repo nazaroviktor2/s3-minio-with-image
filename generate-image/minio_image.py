@@ -10,7 +10,6 @@ import requests
 from dotenv import load_dotenv
 from minio import Minio
 
-client = Minio
 load_dotenv()
 BUCKET = os.getenv('BUCKET')
 MINIO_HOST = os.getenv("MINIO_HOST")
@@ -18,9 +17,8 @@ MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER")
 MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD")
 
 
-def init_s3() -> None:
-    """Initializes minio."""
-    global client
+def get_client():
+    """Gets minio client."""
     # connect to minio
     client = Minio(
         endpoint=MINIO_HOST,
@@ -35,6 +33,8 @@ def init_s3() -> None:
         client.make_bucket(BUCKET)
     else:
         logging.info(f"Bucket '{BUCKET}' already exists")
+
+    return client
 
 
 def save_image_to_s3(uid: str, url: str, file_format: str = "png") -> tuple:
@@ -51,6 +51,7 @@ def save_image_to_s3(uid: str, url: str, file_format: str = "png") -> tuple:
     # get image
     re = requests.get(url)
     # save image
+    client = get_client()
     result = client.put_object(
         BUCKET, "{0}.{1}".format(uid, file_format),
         io.BytesIO(re.content),
