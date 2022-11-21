@@ -20,6 +20,7 @@ services:
           POSTGRES_USER: ${DB_USER}
           POSTGRES_PASSWORD: ${DB_PASSWORD}
           POSTGRES_DB: "${DATABASE}"
+          POSTGRES_HOST_AUTH_METHOD: trust
 
           PGDATA: /var/lib/postgresql/data/pgdata
       ports:
@@ -51,7 +52,7 @@ services:
   generate-image:
     build: ./generate-image/
     environment:
-      BUCKET: img-test
+      BUCKET: ${BUCKET}
       MINIO_HOST: minio:9000
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_USER}
