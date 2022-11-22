@@ -22,7 +22,7 @@ Python контейнер. Выполнят get запросы к сервисы
 # .env 
 ## minIO
 - BUCKET - название хранилища.
-- MINIO_HOST - адрес сервера minIO.
+- MINIO_HOST - адрес сервера minIO. (:MINIO_CONSOLE_PORT)
 - MINIO_ROOT_USER - имя root пользователя (так же access key).
 - MINIO_ROOT_PASSWORD- пароль для root пользователя (так же secret key).
 - MINIO_API_PORT - порт для работы с api.
